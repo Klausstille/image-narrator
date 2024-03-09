@@ -8,8 +8,10 @@
 ![Main Page](public/page-4.png)
 ![Main Page](public/page-5.png)
 ![Main Page](public/page-6.png)
-![Main Page](public/page-7.png)
-![Main Page](public/page-8.png)
+
+## Notes
+
+This project serves as a continuation and provides a readaptation of the theme/layout for Loïc Sutter's Image Narrator, while maintaining its key functionality. Further details can be found here: https://github.com/Klausstille/loic-sutter
 
 ## Overview
 
