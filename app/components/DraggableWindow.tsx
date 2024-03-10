@@ -22,6 +22,7 @@ interface DraggableWindowProps {
         value: number | ((prevState: number) => number)
     ) => void;
     minimizedWindowsCount?: number;
+    selectedProject?: boolean;
 }
 
 export const DraggableWindow: React.FC<DraggableWindowProps> = ({
@@ -38,6 +39,7 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
     onMinimize,
     setMinimizedWindowsCount,
     minimizedWindowsCount,
+    selectedProject,
 }) => {
     const [hasLoaded, setHasLoaded] = useState(false);
     const {
@@ -129,7 +131,9 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
                 }
             >
                 <div
-                    className={`${className} absolute drop-shadow-3xl rounded-b-sm window`}
+                    className={`${className} absolute rounded-b-sm window ${
+                        selectedProject ? "drop-shadow-4xl" : "drop-shadow-3xl"
+                    }`}
                     style={{
                         zIndex: zIndex,
                     }}

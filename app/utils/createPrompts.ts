@@ -8,7 +8,7 @@ export default function createPrompts({
     user: string;
 }) {
     return {
-        id: `aNygDRVyEgZgd4zRe1B2`,
+        id: `6XEBM5aTN5QntkgHSTzt`,
         name: name,
         system: system,
         user: user,

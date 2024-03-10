@@ -16,6 +16,10 @@ export default function Home() {
         []
     );
     const [activeIndex, setActiveIndex] = useState(-1);
+    // activeAudioIndex Item that's getting the audio generated/submitted
+    const [activeAudioIndex, setActiveAudioIndex] = useState<number | null>(
+        null
+    );
     const [showImageGallery, setShowImageGallery] = useState<boolean>(false);
     const [showInfo, setShowInfo] = useState<boolean>(true);
     const audioElRef = useRef<HTMLAudioElement>(null);
@@ -38,8 +42,9 @@ export default function Home() {
     } = useAudioManager(audioElRef);
 
     // Fetching new text and audio
-    const handleFetchTextAndAudio = async () => {
-        // console.log("Fetching new text and audio...");
+    const handleFetchTextAndAudio = async (idx: number) => {
+        console.log("Fetching new text and audio...");
+        setActiveAudioIndex(idx);
         if (!abortControllerRef.current) {
             abortControllerRef.current = new AbortController();
         }
@@ -48,13 +53,14 @@ export default function Home() {
         setLoadingSpeech(true);
         const description = await fetchText(
             signal,
-            projectData[activeIndex].image.url,
-            projectData[activeIndex].sys.id,
+            projectData[idx].image.url,
+            projectData[idx].sys.id,
             setAssistantResponse,
             setLoadingSpeech,
             promptData,
             assistantResponse
         );
+        console.log("description...", description);
         if (!description) return;
 
         await fetchSpeech(
@@ -65,35 +71,35 @@ export default function Home() {
             setStartingSpeech,
             setShowPlayButton,
             setAssistantResponse,
-            projectData[activeIndex].sys.id,
+            projectData[idx].sys.id,
             promptData
         );
+        setActiveAudioIndex(null);
     };
 
     // Submitting audio to Contentful
-    const handleSubmitAudio = async () => {
+    const handleSubmitAudio = async (idx: number) => {
         // console.log("Submitting audio to contentful.....");
         setSubmittingAudio(true);
+        setActiveAudioIndex(idx);
         const audioFile = assistantResponse.find(
-            (item) => item._id === projectData[activeIndex].sys.id
+            (item) => item._id === projectData[idx].sys.id
         )?.audioFormData;
         const description = assistantResponse.find(
-            (item) => item._id === projectData[activeIndex].sys.id
+            (item) => item._id === projectData[idx].sys.id
         )?.text;
 
         if (!audioFile || !description) return;
         uploadAudioToContentful(audioFile, description)
             .then((assetId) =>
-                updateProjectItemWithAudio(
-                    assetId,
-                    projectData[activeIndex].sys.id
-                )
+                updateProjectItemWithAudio(assetId, projectData[idx].sys.id)
             )
             .then(() => {
                 // console.log(
                 //     "Project item updated and published successfully with the new audio!!! 🎉🎉🎉"
                 // );
                 setSubmittingAudio(false);
+                setActiveAudioIndex(null);
                 mutate();
             })
             .catch((error) =>
@@ -177,7 +183,6 @@ export default function Home() {
                     setShowImageGallery={setShowImageGallery}
                     setShowInfo={setShowInfo}
                 />
-                {/* {showImageGallery && ( */}
                 <ImageGallery
                     projectData={projectData}
                     handleFetchTextAndAudio={handleFetchTextAndAudio}
@@ -200,8 +205,8 @@ export default function Home() {
                     setShowImageGallery={setShowImageGallery}
                     showInfo={showInfo}
                     setShowInfo={setShowInfo}
+                    activeAudioIndex={activeAudioIndex}
                 />
-                {/* )} */}
             </main>
         </>
     );

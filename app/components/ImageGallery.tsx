@@ -3,13 +3,11 @@ import { AssistantRes, ProjectData } from "../../types";
 import FullScreenAnimation from "./FullScreenAnimation";
 import { DraggableWindow } from "./DraggableWindow";
 import { useProjectDetail } from "../utils/useProjectDetail";
-import { Button } from "./Button";
-import { useSession } from "next-auth/react";
 
 interface ImageGallery {
     projectData: ProjectData[];
-    handleFetchTextAndAudio: () => void;
-    handleSubmitAudio: () => void;
+    handleFetchTextAndAudio: (index: number) => void;
+    handleSubmitAudio: (index: number) => void;
     handleListenStoredAudio: (
         isListenAgain?: boolean | undefined,
         index?: number | undefined
@@ -31,17 +29,19 @@ interface ImageGallery {
     showImageGallery: boolean;
     setShowInfo: (show: boolean) => void;
     showInfo: boolean;
+    activeAudioIndex: number | null;
 }
 
 const ImageGallery = ({
     projectData,
     handleFetchTextAndAudio,
     handleSubmitAudio,
+    submittingAudio,
+    activeAudioIndex,
     setActiveIndex,
     activeIndex,
     assistantResponse,
     handleListenStoredAudio,
-    submittingAudio,
     loadingSpeech,
     handleStopAudio,
     startingSpeech,
@@ -58,7 +58,6 @@ const ImageGallery = ({
 }: ImageGallery) => {
     const {
         openProjects,
-        zIndexMap,
         bringToFront,
         closeProjectDetail,
         onMinimizeProject,
@@ -74,7 +73,9 @@ const ImageGallery = ({
         setShowInfo,
     });
 
-    const { data: session } = useSession();
+    const highestOrderProject = openProjects.sort(
+        (a, b) => b.zIndex - a.zIndex
+    )[0]?.id;
 
     return (
         <>
@@ -83,8 +84,13 @@ const ImageGallery = ({
                     onClose={() => closeProjectDetail("infoWindow")}
                     onClick={() => bringToFront("infoWindow")}
                     onMinimize={() => onMinimizeProject()}
-                    zIndex={zIndexMap["infoWindow"]}
+                    zIndex={
+                        openProjects.find(
+                            (project) => project.id === "infoWindow"
+                        )?.zIndex
+                    }
                     title="⚠️"
+                    selectedProject={highestOrderProject === "infoWindow"}
                 >
                     <div
                         style={{ width: "100%", height: "100%" }}
@@ -114,8 +120,13 @@ const ImageGallery = ({
                         setMinimizedWindowsCount={setMinimizedWindowsCount}
                         title="Tap an image to listen to its story"
                         minimizedWindowsCount={minimizedWindowsCount}
-                        zIndex={zIndexMap["firstWindow"]}
-                        onClick={() => bringToFront("firstWindow")}
+                        zIndex={
+                            openProjects.find(
+                                (project) => project.id === "imageGallery"
+                            )?.zIndex
+                        }
+                        onClick={() => bringToFront("imageGallery")}
+                        selectedProject={highestOrderProject === "imageGallery"}
                         isImageModal
                     >
                         <div
@@ -148,39 +159,8 @@ const ImageGallery = ({
                         const projectIndex = projectData.findIndex(
                             (project) => project.sys.id === openProject.id
                         );
-                        const foundAssistantItem =
-                            assistantResponse?.find(
-                                (item) =>
-                                    item._id ===
-                                    projectData[projectIndex].sys.id
-                            )?.audioUrl !== undefined;
-
-                        const foundSubmittedItem =
-                            projectData?.find(
-                                (item) =>
-                                    item.sys.id ===
-                                    projectData[projectIndex]?.sys.id
-                            )?.audioFile == null;
-
-                        const alreadySubmittedItem =
-                            assistantResponse?.find(
-                                (item) =>
-                                    item._id ===
-                                    projectData[projectIndex]?.sys.id
-                            )?.text !== undefined &&
-                            assistantResponse?.find(
-                                (item) =>
-                                    item._id ===
-                                    projectData[projectIndex]?.sys.id
-                            )?.text ===
-                                projectData[projectIndex]?.audioFile
-                                    ?.description;
-
-                        const disabledButtonCondition =
-                            !foundAssistantItem ||
-                            (foundAssistantItem && alreadySubmittedItem);
-
-                        const transitionClasses = `transition-all duration-300 ease-in-out`;
+                        const selectedProject =
+                            highestOrderProject === openProject.id;
 
                         if (openProject.isOpen && projectIndex !== -1) {
                             return (
@@ -199,11 +179,17 @@ const ImageGallery = ({
                                     minimizedWindowsCount={
                                         minimizedWindowsCount
                                     }
-                                    zIndex={zIndexMap[openProject.id]}
+                                    zIndex={
+                                        openProjects.find(
+                                            (project) =>
+                                                project.id === openProject.id
+                                        )?.zIndex
+                                    }
                                     onClick={() => bringToFront(openProject.id)}
                                     offset={offset}
                                     index={projectIndex}
                                     projectData={projectData}
+                                    selectedProject={selectedProject}
                                 >
                                     <FullScreenAnimation
                                         activeIndex={activeIndex}
@@ -218,86 +204,16 @@ const ImageGallery = ({
                                         setShowPlayButton={setShowPlayButton}
                                         loadingSpeech={loadingSpeech}
                                         assistantResponse={assistantResponse}
+                                        submittingAudio={submittingAudio}
+                                        activeAudioIndex={activeAudioIndex}
+                                        handleFetchTextAndAudio={
+                                            handleFetchTextAndAudio
+                                        }
+                                        handleSubmitAudio={handleSubmitAudio}
+                                        handleListenStoredAudio={
+                                            handleListenStoredAudio
+                                        }
                                     />
-                                    {session && (
-                                        <article className="absolute top-[50%] right-[50%] -translate-y-[40%] translate-x-2/4 min-w-52 max-tablet:scale-[0.9]">
-                                            <section className="flex flex-col gap-2 max-tablet:gap-2 bg-black p-2 drop-shadow-form">
-                                                <Button
-                                                    className={`${transitionClasses} h-[30px] bg-[#222] hover:bg-[#333] text-white border-none drop-shadow-button`}
-                                                    onClick={() =>
-                                                        handleListenStoredAudio(
-                                                            false,
-                                                            projectIndex
-                                                        )
-                                                    }
-                                                    disabled={
-                                                        foundSubmittedItem
-                                                    }
-                                                >
-                                                    Listen to Published Audio
-                                                </Button>
-                                                <Button
-                                                    className={`${transitionClasses} h-[30px] text-white ${
-                                                        loadingSpeech
-                                                            ? "submitAudioAnimation"
-                                                            : "bg-[#222] hover:bg-[#333] text-white border-none"
-                                                    } drop-shadow-button`}
-                                                    onClick={() =>
-                                                        handleFetchTextAndAudio()
-                                                    }
-                                                >
-                                                    {loadingSpeech
-                                                        ? "Generating..."
-                                                        : "Generate New Audio"}
-                                                </Button>
-                                                <Button
-                                                    className={`${transitionClasses} h-[30px] ${
-                                                        foundAssistantItem ==
-                                                        undefined
-                                                            ? "bg-[#555] text-[#aaa] border-[#666] opacity-50 border-none"
-                                                            : `bg-[#222] text-white border-none ${
-                                                                  !disabledButtonCondition &&
-                                                                  "hover:bg-[#333]"
-                                                              }`
-                                                    } drop-shadow-button`}
-                                                    disabled={
-                                                        disabledButtonCondition
-                                                    }
-                                                    onClick={() =>
-                                                        handleListenStoredAudio(
-                                                            true,
-                                                            projectIndex
-                                                        )
-                                                    }
-                                                >
-                                                    Listen Again
-                                                </Button>
-                                                <Button
-                                                    className={`${transitionClasses} h-[30px] text-white ${
-                                                        submittingAudio
-                                                            ? "submitAudioAnimation"
-                                                            : !alreadySubmittedItem &&
-                                                              foundAssistantItem
-                                                            ? "bg-[#0078d4;] hover:bg-[#000080] border-[#0078d4] border-none "
-                                                            : `bg-[#222] text-[#fff] border-none ${
-                                                                  !disabledButtonCondition &&
-                                                                  "hover:bg-[#333]"
-                                                              }`
-                                                    } drop-shadow-button`}
-                                                    onClick={() =>
-                                                        handleSubmitAudio()
-                                                    }
-                                                    disabled={
-                                                        disabledButtonCondition
-                                                    }
-                                                >
-                                                    {submittingAudio
-                                                        ? "Submitting..."
-                                                        : "Submit New Audio"}
-                                                </Button>
-                                            </section>
-                                        </article>
-                                    )}
                                 </DraggableWindow>
                             );
                         }

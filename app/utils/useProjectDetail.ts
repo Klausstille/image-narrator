@@ -16,9 +16,8 @@ export const useProjectDetail = ({
     setShowInfo,
 }: useProjectDetailProps) => {
     const [openProjects, setOpenProjects] = useState<
-        { id: string; isOpen: boolean }[]
+        { id: string; isOpen: boolean; zIndex: number }[]
     >([]);
-    const [zIndexMap, setZIndexMap] = useState<{ [key: string]: number }>({});
     const [nextZIndex, setNextZIndex] = useState<number>(1);
     const [minimizedWindowsCount, setMinimizedWindowsCount] = useState(0);
     const [offset, setOffset] = useState<{ x: number; y: number }>({
@@ -47,33 +46,27 @@ export const useProjectDetail = ({
         setOffset(newOffset);
         if (!openProjects.find((project) => project.id === projectId)) {
             setOpenProjects((prevState) => [
-                { id: projectId, isOpen: true },
                 ...prevState,
+                { id: projectId, isOpen: true, zIndex: nextZIndex },
             ]);
-            setZIndexMap((prevMap) => ({
-                ...prevMap,
-                [projectId]: nextZIndex,
-            }));
             setNextZIndex((prevIndex) => prevIndex + 1);
         } else {
             setOpenProjects((prevState) =>
-                prevState.map((project) =>
-                    project.id === projectId
-                        ? { ...project, isOpen: true }
-                        : project
-                )
+                prevState
+                    .map((project) =>
+                        project.id === projectId
+                            ? { ...project, isOpen: true, zIndex: nextZIndex }
+                            : project
+                    )
+                    .sort((a, b) => a.zIndex - b.zIndex)
             );
-            setZIndexMap((prevMap) => ({
-                ...prevMap,
-                [projectId]: nextZIndex,
-            }));
             setNextZIndex((prevIndex) => prevIndex + 1);
         }
     };
-
     const closeProjectDetail = (projectId: string) => {
         if (projectId === "imageGallery") {
             setShowImageGallery(false);
+            setOpenProjects([]);
             handleStopAudio();
         }
         if (projectId === "infoWindow") {
@@ -106,17 +99,25 @@ export const useProjectDetail = ({
         setOpenProjects((prevState) =>
             prevState.filter((project) => project.id !== projectId)
         );
-        setZIndexMap((prevMap) => {
-            const { [projectId]: _, ...rest } = prevMap;
-            return rest;
-        });
     };
 
     const bringToFront = (projectId: string) => {
-        setZIndexMap((prevMap) => ({
-            ...prevMap,
-            [projectId]: nextZIndex,
-        }));
+        if (openProjects.find((project) => project.id === projectId)) {
+            setOpenProjects((prevState) =>
+                prevState
+                    .map((project) =>
+                        project.id === projectId
+                            ? { ...project, zIndex: nextZIndex }
+                            : project
+                    )
+                    .sort((a, b) => a.zIndex - b.zIndex)
+            );
+        } else {
+            setOpenProjects((prevState) => [
+                { id: projectId, isOpen: true, zIndex: nextZIndex },
+                ...prevState,
+            ]);
+        }
         setNextZIndex((prevIndex) => prevIndex + 1);
     };
 
@@ -126,7 +127,6 @@ export const useProjectDetail = ({
 
     return {
         openProjects,
-        zIndexMap,
         nextZIndex,
         offset,
         openProjectDetail,

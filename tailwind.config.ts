@@ -20,7 +20,8 @@ const config: Config = {
                 "16/9": "16 / 9",
             },
             dropShadow: {
-                "3xl": "0 10px 10px rgba(0, 0, 0, 0.45)",
+                "4xl": "0 10px 10px rgba(0, 0, 0, 0.8)",
+                "3xl": "0 10px 10px rgba(0, 0, 0, 0.4)",
                 "2xl": "0 1px 1px rgba(0, 0, 0, 0.85)",
             },
             backgroundImage: {
