@@ -213,6 +213,7 @@ const ImageGallery = ({
                                         handleListenStoredAudio={
                                             handleListenStoredAudio
                                         }
+                                        handleStopAudio={handleStopAudio}
                                     />
                                 </DraggableWindow>
                             );

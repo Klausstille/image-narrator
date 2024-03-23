@@ -10,6 +10,7 @@ import { useProjectData } from "./utils/useProjectData";
 import { usePromptData } from "./utils/usePromptData";
 import { useAudioManager } from "./utils/useAudioManager";
 import DesktopScreen from "./components/DesktopScreen";
+import Footer from "./components/Footer";
 
 export default function Home() {
     const [assistantResponse, setAssistantResponse] = useState<AssistantRes[]>(
@@ -208,6 +209,7 @@ export default function Home() {
                     activeAudioIndex={activeAudioIndex}
                 />
             </main>
+            <Footer />
         </>
     );
 }

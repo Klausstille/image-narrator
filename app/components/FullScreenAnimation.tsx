@@ -39,6 +39,7 @@ interface FullScreenAnimationProps {
     handleFetchTextAndAudio: (index: number) => void;
     handleSubmitAudio: (index: number) => void;
     handleListenStoredAudio: (isListenAgain?: boolean, index?: number) => void;
+    handleStopAudio: () => void;
 }
 
 type ButtonConfig = {
@@ -66,6 +67,7 @@ export default function FullScreenAnimation({
     handleFetchTextAndAudio,
     handleSubmitAudio,
     handleListenStoredAudio,
+    handleStopAudio,
 }: FullScreenAnimationProps) {
     const { data: session } = useSession();
     const project = projectData[projectIndex];
@@ -147,8 +149,6 @@ export default function FullScreenAnimation({
                     startingSpeech={startingSpeech}
                     audioElRef={audioElRef}
                     showPlayButton={showPlayButton}
-                    isMute={isMute}
-                    toggleMute={toggleMute}
                     setStartingSpeech={setStartingSpeech}
                     setShowPlayButton={setShowPlayButton}
                     projectData={projectData}
@@ -156,6 +156,41 @@ export default function FullScreenAnimation({
                     assistantResponse={assistantResponse}
                 />
             )}
+            <span
+                className={`absolute right-[70px] top-[1px] pt-[7px] pb-[3px] flex flex-row`}
+            >
+                {startingSpeech && projectIndex === activeIndex && (
+                    <svg
+                        onClick={toggleMute}
+                        xmlns="http://www.w3.org/2000/svg"
+                        data-name="Layer 1"
+                        viewBox="0 0 35 30.5"
+                        x="0px"
+                        y="0px"
+                        className="toolbar-button pl-[3px]"
+                        style={{ fill: isMute ? "gray" : "black" }}
+                    >
+                        <path d="M13.5,7.135a1,1,0,0,0-1,0L5.734,11H2a1,1,0,0,0-1,1v6a1,1,0,0,0,1,1H5.734l6.77,3.868A1,1,0,0,0,14,22V8A1,1,0,0,0,13.5,7.135Z" />
+                        <path d="M16.374,11.221a1,1,0,0,0-.153,1.406,4.018,4.018,0,0,1,0,4.746,1,1,0,1,0,1.558,1.254,5.974,5.974,0,0,0,0-7.254A1,1,0,0,0,16.374,11.221Z" />
+                        <path d="M20.374,8.221a1,1,0,0,0-.153,1.406,8.973,8.973,0,0,1,0,10.746,1,1,0,1,0,1.558,1.254,11.067,11.067,0,0,0,0-13.254A1,1,0,0,0,20.374,8.221Z" />
+                        <path d="M25.779,5.373a1,1,0,0,0-1.558,1.254,13.983,13.983,0,0,1,0,16.746,1,1,0,1,0,1.558,1.254A16.077,16.077,0,0,0,25.779,5.373Z" />
+                    </svg>
+                )}
+                <div
+                    className={` toolbar-button ${
+                        startingSpeech && projectIndex === activeIndex
+                            ? "stop"
+                            : "play"
+                    }`}
+                    onClick={() => {
+                        if (startingSpeech) {
+                            handleStopAudio();
+                            return;
+                        }
+                        handleListenStoredAudio(false, projectIndex);
+                    }}
+                ></div>
+            </span>
             {session && (
                 <article className="absolute top-[50%] right-[50%] -translate-y-[40%] translate-x-2/4 min-w-52 max-tablet:scale-[0.9]">
                     <section className="flex flex-col gap-2 max-tablet:gap-2 bg-black p-2 drop-shadow-form">

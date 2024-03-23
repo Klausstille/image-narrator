@@ -57,19 +57,6 @@ export default function DesktopScreen({
                         </aside>
                     </Draggable>
                 </div>
-
-                <p className="footer absolute bottom-0 w-full text-center py-1 text-black text-[13px]">
-                    © 2024, Design and Development{" "}
-                    <a
-                        className="text-[13px]"
-                        href="http://www.stillestudio.com"
-                        target="blank"
-                        style={{ textDecoration: "none" }}
-                    >
-                        Stille Studio
-                    </a>{" "}
-                    💫
-                </p>
             </motion.div>
         </AnimatePresence>
     );

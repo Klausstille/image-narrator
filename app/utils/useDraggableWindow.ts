@@ -132,7 +132,7 @@ export const useDraggableWindow = ({
     const handleMinimize = () => {
         if (setMinimizedWindowsCount && minimizedWindowsCount !== undefined) {
             const viewportHeight = window.innerHeight;
-            const newYPosition = viewportHeight - 30;
+            const newYPosition = viewportHeight - 60;
             const xOffset = 100 * minimizedWindowsCount;
             currentPosition.current = {
                 x: xOffset,
